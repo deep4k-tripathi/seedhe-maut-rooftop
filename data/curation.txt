@@ -1,0 +1,30 @@
+# SM Nation — the curated set.
+# One song per line. Lines starting with # are ignored.
+# Run `npm run tracks` after editing to regenerate data/tracks.json.
+#
+# Optional: append ` | <artist hint>` to disambiguate a title that collides
+# with another artist's song. The resolver already prefers Seedhe Maut credits.
+
+# — introspective —
+Maina
+Baat Aisi Ghar Jaisi
+Teen Dost
+
+# — Nayaab —
+Kohra
+Hoshiyaar
+
+# — न —
+Nadaan
+Na Jaaye
+
+# — Lunch Break —
+Kavi
+I Don't Miss That Life
+
+# — Bayaan —
+Pankh | Seedhe Maut & Sez on the Beat
+
+# — singles & collabs —
+Tofa
+Chalo Chalein | Ritviz

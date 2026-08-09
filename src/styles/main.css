@@ -1,0 +1,625 @@
+/* ── palette ───────────────────────────────────────────────────────────────── */
+:root {
+  --ink: #07070a;
+  --bone: #f2ece1;
+  --bone-dim: rgba(242, 236, 225, 0.58);
+  --bone-faint: rgba(242, 236, 225, 0.26);
+  --blood: #c1272d;
+  --ember: #e0722f;
+
+  /* Driven from JS each frame. Everything reactive reads these. */
+  --bass: 0;
+  --mid: 0;
+  --treble: 0;
+  --level: 0;
+
+  --dock: clamp(0.75rem, 2.2vw, 1.6rem);
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--ink);
+  color: var(--bone);
+  font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Inter, sans-serif;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+a {
+  color: inherit;
+}
+
+/* ── scene ─────────────────────────────────────────────────────────────────── */
+#scene {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+}
+
+.scene {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.haze {
+  opacity: calc(0.55 + var(--bass) * 0.45);
+  transition: opacity 90ms linear;
+}
+
+.stars circle {
+  fill: #fff;
+  opacity: 0.5;
+  animation: twinkle 4.5s ease-in-out infinite;
+  animation-delay: var(--phase, 0s);
+}
+
+@keyframes twinkle {
+  0%,
+  100% {
+    opacity: 0.16;
+  }
+  50% {
+    opacity: 0.62;
+  }
+}
+
+/* skyline: further blocks sit hazier and darker */
+.block {
+  opacity: calc(0.45 + var(--depth) * 0.55);
+}
+
+.mass {
+  fill: #0a0a0f;
+}
+
+.block[style*='--depth:0.35'] .mass {
+  fill: #17131c;
+}
+
+/* windows — the bass drives how hard the city burns */
+.win {
+  opacity: calc(0.22 + var(--bass) * 0.78);
+  animation: flick 7s steps(1, end) infinite;
+  animation-delay: var(--phase, 0s);
+  transition: opacity 70ms linear;
+}
+
+.win.warm {
+  fill: #ffb459;
+}
+
+.win.cool {
+  fill: #9fd0e8;
+}
+
+@keyframes flick {
+  0%,
+  92% {
+    opacity: inherit;
+  }
+  93%,
+  96% {
+    opacity: 0.08;
+  }
+}
+
+.roof-deck {
+  fill: #050508;
+}
+
+.parapet {
+  fill: #0c0c11;
+}
+
+.parapet-cap {
+  fill: #191922;
+}
+
+.wires .wire {
+  fill: none;
+  stroke: #05050a;
+  stroke-width: 3.4;
+  transform: translateY(calc(var(--treble) * -3px));
+  transition: transform 60ms linear;
+}
+
+.pole rect,
+.dish rect {
+  fill: #06060b;
+}
+
+.dish-face {
+  fill: #0b0b12;
+  stroke: #1d1d27;
+  stroke-width: 2;
+}
+
+.tank-body {
+  fill: #0a0a10;
+}
+
+.tank-rib {
+  fill: #14141d;
+}
+
+.tank-lid {
+  fill: #1b1b25;
+}
+
+.tank-stand {
+  fill: #050509;
+}
+
+.laundry .line {
+  fill: none;
+  stroke: #08080e;
+  stroke-width: 2.4;
+}
+
+.cloth {
+  animation: sway 5.5s ease-in-out infinite;
+  animation-delay: var(--phase, 0s);
+  transform-origin: top center;
+  opacity: 0.9;
+}
+
+.cloth.c0 {
+  fill: #17171f;
+}
+.cloth.c1 {
+  fill: #241318;
+}
+.cloth.c2 {
+  fill: #101820;
+}
+
+@keyframes sway {
+  0%,
+  100% {
+    transform: rotate(-1.6deg);
+  }
+  50% {
+    transform: rotate(1.8deg);
+  }
+}
+
+.hut {
+  fill: #08080d;
+}
+
+.hut-door {
+  fill: #150d0c;
+}
+
+/* the tube light — mids drive the flicker */
+.tube {
+  fill: #eaf4ff;
+  opacity: calc(0.55 + var(--mid) * 0.45);
+  animation: buzz 3.1s steps(1, end) infinite;
+}
+
+.tube-glow {
+  opacity: calc(0.25 + var(--mid) * 0.6);
+  transition: opacity 70ms linear;
+}
+
+@keyframes buzz {
+  0%,
+  88% {
+    filter: none;
+  }
+  89%,
+  91% {
+    opacity: 0.12;
+  }
+  92%,
+  100% {
+    filter: none;
+  }
+}
+
+/* festoon — overall level drives the bulbs */
+.jhalar-wire {
+  fill: none;
+  stroke: #0a0a10;
+  stroke-width: 2;
+}
+
+.bulb {
+  animation: bulbpulse 2.4s ease-in-out infinite;
+  animation-delay: var(--phase, 0s);
+  opacity: calc(0.35 + var(--level) * 0.65);
+}
+
+.bulb.b0 {
+  fill: #ff5a4d;
+}
+.bulb.b1 {
+  fill: #ffd24a;
+}
+.bulb.b2 {
+  fill: #57d6a0;
+}
+.bulb.b3 {
+  fill: #62a8ff;
+}
+
+@keyframes bulbpulse {
+  0%,
+  100% {
+    filter: brightness(0.55);
+  }
+  50% {
+    filter: brightness(1.5);
+  }
+}
+
+.vignette {
+  pointer-events: none;
+}
+
+.grain {
+  opacity: 0.055;
+  mix-blend-mode: overlay;
+  pointer-events: none;
+}
+
+/* ── chrome ────────────────────────────────────────────────────────────────── */
+.ui {
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  padding: var(--dock);
+  pointer-events: none;
+}
+
+.ui > * {
+  pointer-events: auto;
+}
+
+.topbar {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.mark {
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  font-size: clamp(0.7rem, 1.5vw, 0.82rem);
+  text-transform: uppercase;
+  line-height: 1.5;
+}
+
+.mark span {
+  display: block;
+  color: var(--bone-dim);
+  font-weight: 500;
+  letter-spacing: 0.1em;
+}
+
+/* live counter */
+.live {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  color: var(--bone-dim);
+  opacity: 0;
+  transition: opacity 400ms ease;
+}
+
+.live[data-ready='true'] {
+  opacity: 1;
+}
+
+.live b {
+  color: var(--bone);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--blood);
+  box-shadow: 0 0 0 0 rgba(193, 39, 45, 0.75);
+  animation: ping 2s ease-out infinite;
+}
+
+@keyframes ping {
+  0% {
+    box-shadow: 0 0 0 0 rgba(193, 39, 45, 0.7);
+  }
+  70%,
+  100% {
+    box-shadow: 0 0 0 9px rgba(193, 39, 45, 0);
+  }
+}
+
+.links {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.links a {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  background: rgba(242, 236, 225, 0.07);
+  border: 1px solid rgba(242, 236, 225, 0.12);
+  backdrop-filter: blur(8px);
+  transition:
+    background 180ms ease,
+    transform 180ms ease;
+}
+
+.links a:hover {
+  background: rgba(242, 236, 225, 0.16);
+  transform: translateY(-2px);
+}
+
+.links svg {
+  width: 17px;
+  height: 17px;
+  fill: var(--bone);
+}
+
+/* ── dock ──────────────────────────────────────────────────────────────────── */
+.dock {
+  display: flex;
+  align-items: center;
+  gap: clamp(0.7rem, 2vw, 1.1rem);
+  padding: clamp(0.6rem, 1.6vw, 0.85rem);
+  border-radius: 16px;
+  background: rgba(8, 8, 12, 0.6);
+  border: 1px solid rgba(242, 236, 225, 0.1);
+  backdrop-filter: blur(16px) saturate(1.2);
+  max-width: 560px;
+  transform: translateY(0);
+  transition:
+    opacity 500ms ease,
+    transform 500ms ease;
+}
+
+.dock[hidden] {
+  display: none;
+}
+
+.art {
+  width: clamp(48px, 11vw, 62px);
+  height: clamp(48px, 11vw, 62px);
+  border-radius: 10px;
+  object-fit: cover;
+  flex: none;
+  background: linear-gradient(135deg, #2a1416, #0b0b10);
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.55);
+}
+
+.meta {
+  min-width: 0;
+  flex: 1;
+}
+
+.title {
+  font-weight: 700;
+  font-size: clamp(0.85rem, 2vw, 0.98rem);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sub {
+  font-size: clamp(0.68rem, 1.6vw, 0.78rem);
+  color: var(--bone-dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 2px;
+}
+
+.bar {
+  margin-top: 7px;
+  height: 3px;
+  border-radius: 2px;
+  background: rgba(242, 236, 225, 0.14);
+  overflow: hidden;
+}
+
+.bar i {
+  display: block;
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--blood), var(--ember));
+}
+
+.transport {
+  display: flex;
+  align-items: center;
+  gap: 0.15rem;
+  flex: none;
+}
+
+.transport button {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  transition: background 160ms ease;
+}
+
+.transport button:hover {
+  background: rgba(242, 236, 225, 0.1);
+}
+
+.transport svg {
+  width: 17px;
+  height: 17px;
+  fill: var(--bone);
+}
+
+.transport .play {
+  width: 46px;
+  height: 46px;
+  background: var(--bone);
+}
+
+.transport .play svg {
+  fill: var(--ink);
+  width: 19px;
+  height: 19px;
+}
+
+.transport .play:hover {
+  background: #fff;
+}
+
+/* ── curtain ───────────────────────────────────────────────────────────────── */
+.curtain {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 1.1rem;
+  text-align: center;
+  padding: 2rem;
+  background: radial-gradient(ellipse at 50% 55%, rgba(7, 7, 10, 0.55), rgba(7, 7, 10, 0.92));
+  backdrop-filter: blur(3px);
+  transition:
+    opacity 700ms ease,
+    visibility 700ms;
+}
+
+.curtain[data-open='false'] {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.curtain h1 {
+  margin: 0;
+  font-size: clamp(2.6rem, 12vw, 6.5rem);
+  line-height: 0.86;
+  letter-spacing: -0.03em;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.curtain h1 em {
+  display: block;
+  font-style: normal;
+  color: var(--blood);
+}
+
+.curtain p {
+  margin: 0;
+  max-width: 34ch;
+  color: var(--bone-dim);
+  font-size: clamp(0.82rem, 2.2vw, 0.95rem);
+  line-height: 1.6;
+}
+
+.enter {
+  margin-top: 0.4rem;
+  padding: 0.85rem 2.2rem;
+  border-radius: 999px;
+  background: var(--bone);
+  color: var(--ink);
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  transition:
+    transform 200ms ease,
+    box-shadow 200ms ease;
+}
+
+.enter:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 34px rgba(242, 236, 225, 0.22);
+}
+
+.hint {
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--bone-faint);
+}
+
+/* ── failure notice ────────────────────────────────────────────────────────── */
+.notice {
+  position: fixed;
+  left: 50%;
+  bottom: calc(var(--dock) + 96px);
+  transform: translateX(-50%);
+  z-index: 5;
+  padding: 0.6rem 1rem;
+  border-radius: 10px;
+  background: rgba(193, 39, 45, 0.16);
+  border: 1px solid rgba(193, 39, 45, 0.4);
+  font-size: 0.78rem;
+  color: var(--bone);
+}
+
+.notice[hidden] {
+  display: none;
+}
+
+/* ── responsive ────────────────────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .dock {
+    width: 100%;
+    max-width: none;
+    gap: 0.6rem;
+  }
+
+  .transport button:not(.play) {
+    width: 32px;
+    height: 32px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stars circle,
+  .cloth,
+  .bulb,
+  .tube,
+  .win,
+  .dot {
+    animation: none;
+  }
+
+  .curtain,
+  .dock,
+  .live {
+    transition: none;
+  }
+}

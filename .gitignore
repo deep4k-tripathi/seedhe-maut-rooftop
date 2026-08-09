@@ -1,0 +1,13 @@
+node_modules/
+dist/
+.DS_Store
+*.log
+
+# local env overrides; VITE_PRESENCE_URL lives here during development
+.env
+.env.local
+.env.*.local
+
+# wrangler
+worker/.wrangler/
+.dev.vars
