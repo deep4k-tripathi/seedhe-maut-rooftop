@@ -20,6 +20,9 @@ export interface Env {
 /** Everyone shares one room, so the object name is fixed. */
 const ROOM = 'the-roof';
 
+/** WebSocket.OPEN. Spelled out because the numeric readyState is easy to misread. */
+const WS_OPEN = 1;
+
 function isAllowed(origin: string | null, env: Env): boolean {
   // Unset means "any origin" — convenient locally, worth setting in production.
   if (!env.ALLOWED_ORIGINS) return true;
@@ -37,7 +40,7 @@ export class Roof {
     if (request.headers.get('Upgrade') !== 'websocket') {
       // Plain GET returns the current count, handy for health checks.
       return Response.json(
-        { count: this.state.getWebSockets().length },
+        { count: this.live().length },
         { headers: { 'access-control-allow-origin': '*' } },
       );
     }
@@ -54,7 +57,7 @@ export class Roof {
 
   /** Clients send nothing meaningful; a ping just refreshes their own view. */
   webSocketMessage(ws: WebSocket): void {
-    ws.send(JSON.stringify({ count: this.state.getWebSockets().length }));
+    ws.send(JSON.stringify({ count: this.live().length }));
   }
 
   webSocketClose(ws: WebSocket, code: number, reason: string): void {
@@ -64,21 +67,31 @@ export class Roof {
     } catch {
       // Already gone.
     }
-    this.broadcast();
+    this.broadcast(ws);
   }
 
-  webSocketError(): void {
-    this.broadcast();
+  webSocketError(ws: WebSocket): void {
+    this.broadcast(ws);
   }
 
   /**
-   * Tell everyone the new total. `getWebSockets()` still includes a socket that is
-   * closing, so the count is computed after the runtime has settled the set.
+   * Tell everyone the new total.
+   *
+   * `getWebSockets()` still returns the socket that triggered webSocketClose, so
+   * counting its raw length reports one person too many for the moment after someone
+   * leaves. Filter on readyState and drop the departing socket explicitly.
    */
-  private broadcast(): void {
-    const sockets = this.state.getWebSockets();
-    const payload = JSON.stringify({ count: sockets.length });
-    for (const socket of sockets) {
+  private live(departing?: WebSocket): WebSocket[] {
+    return this.state
+      .getWebSockets()
+      .filter((socket) => socket !== departing && socket.readyState === WS_OPEN);
+  }
+
+  private broadcast(departing?: WebSocket): void {
+    const live = this.live(departing);
+
+    const payload = JSON.stringify({ count: live.length });
+    for (const socket of live) {
       try {
         socket.send(payload);
       } catch {

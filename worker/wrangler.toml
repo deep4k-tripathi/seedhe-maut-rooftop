@@ -2,9 +2,13 @@ name = "sm-nation-presence"
 main = "src/index.ts"
 compatibility_date = "2026-08-01"
 
-# Lock this down once the site has a real hostname. Unset means any origin.
-# [vars]
-# ALLOWED_ORIGINS = "https://deepaktrip.wtf,https://www.deepaktrip.wtf"
+# Origins allowed to open a WebSocket. Unset would mean any origin.
+#
+# Note this is a courtesy fence, not a security boundary: Origin is a browser-supplied
+# header and any script can forge it. It stops another website embedding the counter in
+# a real browser; it does not stop someone determined to inflate the number.
+[vars]
+ALLOWED_ORIGINS = "https://deepaktrip.wtf,https://www.deepaktrip.wtf,https://seedhe-maut-rooftop.vercel.app"
 
 [[durable_objects.bindings]]
 name = "ROOF"
