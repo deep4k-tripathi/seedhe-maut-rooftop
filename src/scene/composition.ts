@@ -597,20 +597,45 @@ export function mount(root: HTMLElement): void {
   refs.smoke.innerHTML = puffs.join('');
   smokeEls = [...refs.smoke.children] as HTMLElement[];
 
-  fit();
-  window.addEventListener('resize', fit);
 }
 
 let smokeEls: HTMLElement[] = [];
 const SMOKE_N = 16;
 const EXHALE_N = 22;
 
-/** Scale the 1920×1080 stage to cover the viewport, like object-fit: cover. */
-function fit(): void {
+/** The figure, in world space — what the crop must not lose. */
+const SUBJECT = { x: 590, y: 660 };
+
+/** How hard the crop tracks the subject versus the stage centre. */
+const FOLLOW = 0.75;
+
+/**
+ * Scale the 1920×1080 stage to cover the viewport.
+ *
+ * Plain `cover` centres the stage, which is wrong here: the camera deliberately frames
+ * the figure left of centre, so a narrow portrait crop sliced him out of frame entirely
+ * and left a phone showing empty sky. The crop window therefore tracks the subject's
+ * current stage position, clamped so it never runs past the edges of the composition.
+ */
+function place(cam: { s: number; cx: number; cy: number }): void {
   if (!refs) return;
-  const k = Math.max(window.innerWidth / W, window.innerHeight / H);
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  const k = Math.max(vw / W, vh / H);
+  const visW = vw / k;
+  const visH = vh / k;
+
+  const subjX = W / 2 + (SUBJECT.x - cam.cx) * cam.s;
+  const subjY = H / 2 + (SUBJECT.y - cam.cy) * cam.s;
+
+  const offset = (vis: number, total: number, subj: number, viewport: number) => {
+    if (vis >= total) return (viewport - total * k) / 2; // no crop on this axis
+    const anchor = clamp(lerp(total / 2, subj, FOLLOW), vis / 2, total - vis / 2);
+    return -(anchor - vis / 2) * k;
+  };
+
   refs.stage.style.transform =
-    `translate(${(window.innerWidth - W * k) / 2}px, ${(window.innerHeight - H * k) / 2}px) scale(${k})`;
+    `translate(${offset(visW, W, subjX, vw).toFixed(2)}px, ${offset(visH, H, subjY, vh).toFixed(2)}px) scale(${k.toFixed(5)})`;
 }
 
 /* ─────────────────────────── per-frame ─────────────────────────── */
@@ -632,8 +657,9 @@ export function render(T: number, energy: { bass: number; mid: number; treble: n
   const p = pose(T);
   const cam = camera(T);
 
+  place(cam);
   r.world.style.transform =
-    `translate(${W / 2 - cam.cx * cam.s}px, ${H / 2 - cam.cy * cam.s}px) scale(${cam.s})`;
+    `translate(${(W / 2 - cam.cx * cam.s).toFixed(2)}px, ${(H / 2 - cam.cy * cam.s).toFixed(2)}px) scale(${cam.s.toFixed(4)})`;
 
   // stars
   for (let i = 0; i < STARS.length; i++) {
