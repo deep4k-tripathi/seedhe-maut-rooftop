@@ -1,0 +1,17 @@
+name = "sm-nation-presence"
+main = "src/index.ts"
+compatibility_date = "2026-08-01"
+
+# Lock this down once the site has a real hostname. Unset means any origin.
+# [vars]
+# ALLOWED_ORIGINS = "https://deepaktrip.wtf,https://www.deepaktrip.wtf"
+
+[[durable_objects.bindings]]
+name = "ROOF"
+class_name = "Roof"
+
+# The free plan only supports SQLite-backed Durable Objects, so the class must be
+# declared with new_sqlite_classes rather than new_classes.
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["Roof"]

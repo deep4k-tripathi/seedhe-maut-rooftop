@@ -99,7 +99,33 @@ async function previewIsLive(url) {
   }
 }
 
+/**
+ * Compare the resolved set against what is committed, by trackId only.
+ *
+ * Preview URLs are deliberately excluded: Apple rotates those asset paths, so diffing
+ * them would fail on runs where nothing about the curation actually changed.
+ */
+async function check(tracks) {
+  const committed = JSON.parse(await readFile(OUTPUT, 'utf8'));
+  const before = committed.map((t) => t.id).sort((a, b) => a - b);
+  const after = tracks.map((t) => t.id).sort((a, b) => a - b);
+
+  if (JSON.stringify(before) === JSON.stringify(after)) {
+    console.log(`\ntracks.json is in sync with curation.txt (${after.length} tracks)`);
+    return;
+  }
+
+  const added = after.filter((id) => !before.includes(id));
+  const removed = before.filter((id) => !after.includes(id));
+  console.error('\ntracks.json is out of sync with curation.txt.');
+  if (added.length) console.error(`  missing from tracks.json: ${added.join(', ')}`);
+  if (removed.length) console.error(`  no longer resolved: ${removed.join(', ')}`);
+  console.error("Run 'npm run tracks' and commit the result.");
+  process.exit(1);
+}
+
 async function main() {
+  const checkOnly = process.argv.includes('--check');
   const entries = parseCuration(await readFile(CURATION, 'utf8'));
   if (!entries.length) throw new Error('curation.txt has no entries');
 
@@ -145,6 +171,8 @@ async function main() {
   if (!tracks.length) {
     throw new Error('Resolved zero tracks — refusing to write an empty playlist.');
   }
+
+  if (checkOnly) return check(tracks);
 
   await writeFile(OUTPUT, JSON.stringify(tracks, null, 2) + '\n');
 
