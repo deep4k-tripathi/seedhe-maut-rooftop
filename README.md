@@ -14,11 +14,36 @@ endpoints (`audio-ssl.itunes.apple.com`), the same free, unauthenticated URLs th
 Search API hands out. No login, no SDK, no licensing exposure, no bandwidth bill.
 
 Those endpoints serve `access-control-allow-origin: *`, so the audio can be routed
-through the Web Audio API. The scene reacts to the real spectrum — bass drives the
-window glow, mids drive the tube-light flicker, transients move the wires.
+through the Web Audio API and the scene can react to the real spectrum.
 
 Thirty seconds a track is the trade. The site is a jukebox that hands off to Spotify,
 Apple Music and YouTube Music for real listening.
+
+## The scene
+
+"Dilli, 11:40 pm" — a south Delhi rooftop, ported from the Claude Design composition
+*Rooftop Scene Delhi Night*. A 20 second loop: the camera pushes in on a hooded figure
+on the parapet, he takes a drag and exhales, a flight crosses behind the Qutub Minar, and
+the frame pulls back as दिल्ली settles over the city.
+
+It is a faithful port from React plus a composition runtime to vanilla TS — those would
+have cost roughly 45 KB gzipped for what is, here, a background. The model is unchanged:
+the whole scene is a pure function of authored time `T`. Static scenery is built once as
+markup and each frame writes only the attributes that move.
+
+Two things in `src/scene/composition.ts` are load-bearing and easy to break:
+
+- The scenery comes from **one shared PRNG consumed in a fixed order** (far blocks, mid
+  blocks, far windows, mid windows, stars, mid antennae, near band). Reordering those
+  calls — or adding one — regenerates a different skyline.
+- The crop **tracks the figure**, not the stage centre. The camera frames him left of
+  centre, so a plain `object-fit: cover` sliced him off portrait viewports entirely.
+
+Audio never overrides the authored choreography. It only lifts the city's light sources —
+windows, the hoarding, the pool of light, the haze — so the piece reads exactly as made
+even in silence.
+
+The scene holds on a single still frame when the viewer has `prefers-reduced-motion`.
 
 ## Curating the set
 
@@ -54,7 +79,7 @@ npm run build
 ## Layout
 
 ```
-src/scene/      the rooftop; exposes pulse(levels), knows nothing about audio
+src/scene/      index.ts owns the clock; composition.ts is the ported piece
 src/player/     engine.ts (audio + analyser), ui.ts (transport)
 src/presence/   WebSocket client for the headcount; fails invisibly
 src/config.ts   presence endpoint and outbound links
