@@ -82,17 +82,23 @@ a {
   }
 }
 
-/* skyline: further blocks sit hazier and darker */
-.block {
-  opacity: calc(0.45 + var(--depth) * 0.55);
+/* skyline: the far ridge sits hazier, lifted toward the sky colour */
+.d1 .mass {
+  fill: #08080d;
 }
 
-.mass {
-  fill: #0a0a0f;
+.d2 .mass {
+  fill: #1a1420;
+  opacity: 0.92;
 }
 
-.block[style*='--depth:0.35'] .mass {
-  fill: #17131c;
+/* A lit top edge separates each block from the one behind it. */
+.ledge {
+  fill: rgba(224, 129, 53, 0.34);
+}
+
+.d2 .ledge {
+  fill: rgba(224, 129, 53, 0.2);
 }
 
 /* windows — the bass drives how hard the city burns */
@@ -123,15 +129,32 @@ a {
 }
 
 .roof-deck {
-  fill: #050508;
+  fill: #08070b;
 }
 
-.parapet {
-  fill: #0c0c11;
-}
-
+/* The deck edge catches the horizon, which is what stops the foreground reading
+   as a black void. */
 .parapet-cap {
-  fill: #191922;
+  fill: rgba(224, 129, 53, 0.42);
+}
+
+.pool {
+  opacity: calc(0.5 + var(--mid) * 0.5);
+  transition: opacity 90ms linear;
+}
+
+.deck-bounce {
+  opacity: calc(0.72 + var(--bass) * 0.28);
+  transition: opacity 90ms linear;
+}
+
+/* Waterproofing patches. Barely visible by design — they exist to break up the plane. */
+.patch {
+  fill: rgba(255, 255, 255, 0.022);
+}
+
+.bird {
+  fill: #04040a;
 }
 
 .wires .wire {
@@ -143,30 +166,44 @@ a {
 }
 
 .pole rect,
-.dish rect {
-  fill: #06060b;
+.dish-mast,
+.dish-arm {
+  fill: #050409;
 }
 
 .dish-face {
-  fill: #0b0b12;
-  stroke: #1d1d27;
-  stroke-width: 2;
+  fill: #0a0910;
+  stroke: rgba(224, 129, 53, 0.34);
+  stroke-width: 2.5;
 }
 
+.dish-lnb {
+  fill: #0d0c14;
+}
+
+/* Foreground masses are near-black by design; the rim light is what makes them
+   legible against the horizon behind. */
 .tank-body {
-  fill: #0a0a10;
+  fill: #08070c;
 }
 
 .tank-rib {
-  fill: #14141d;
+  fill: #12111a;
 }
 
 .tank-lid {
-  fill: #1b1b25;
+  fill: #1a1822;
 }
 
 .tank-stand {
-  fill: #050509;
+  fill: #050409;
+}
+
+.rim {
+  fill: none;
+  stroke: rgba(240, 154, 74, 0.62);
+  stroke-width: 2.4;
+  stroke-linecap: round;
 }
 
 .laundry .line {
@@ -175,21 +212,27 @@ a {
   stroke-width: 2.4;
 }
 
-.cloth {
+.cloth-wrap {
   animation: sway 5.5s ease-in-out infinite;
   animation-delay: var(--phase, 0s);
   transform-origin: top center;
-  opacity: 0.9;
+  transform-box: fill-box;
 }
 
+/* Silhouetted against the brightest part of the sky, so these stay dark and read
+   by shape. The lit top edge is what sells them as hanging fabric. */
 .cloth.c0 {
-  fill: #17171f;
+  fill: #14131b;
 }
 .cloth.c1 {
-  fill: #241318;
+  fill: #20121a;
 }
 .cloth.c2 {
-  fill: #101820;
+  fill: #0e151d;
+}
+
+.cloth-rim {
+  fill: rgba(240, 160, 80, 0.45);
 }
 
 @keyframes sway {
@@ -203,11 +246,15 @@ a {
 }
 
 .hut {
-  fill: #08080d;
+  fill: #06060a;
+}
+
+.hut-edge {
+  fill: rgba(216, 236, 255, 0.28);
 }
 
 .hut-door {
-  fill: #150d0c;
+  fill: #120c0b;
 }
 
 /* the tube light — mids drive the flicker */
@@ -290,6 +337,10 @@ a {
   z-index: 2;
   display: grid;
   grid-template-rows: auto 1fr auto;
+  /* minmax(0, 1fr), not the default `auto`: an auto column grows to its content's
+     min-content width, which let the rigid topbar push the whole column wider than
+     the viewport and dragged the dock off-screen with it. */
+  grid-template-columns: minmax(0, 1fr);
   padding: var(--dock);
   pointer-events: none;
 }
@@ -302,15 +353,19 @@ a {
   display: flex;
   align-items: start;
   justify-content: space-between;
-  gap: 1rem;
+  gap: 0.75rem;
+  min-width: 0;
 }
 
+/* The wordmark yields space; the controls never do. */
 .mark {
   font-weight: 800;
   letter-spacing: 0.18em;
   font-size: clamp(0.7rem, 1.5vw, 0.82rem);
   text-transform: uppercase;
   line-height: 1.5;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .mark span {
@@ -318,6 +373,23 @@ a {
   color: var(--bone-dim);
   font-weight: 500;
   letter-spacing: 0.1em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Flex items default to min-width:auto and refuse to shrink below their content.
+   Both sides must be allowed to give, or the header sets the page's minimum width. */
+.topbar > * {
+  min-width: 0;
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  min-width: 0;
+  flex-shrink: 0;
 }
 
 /* live counter */
@@ -364,6 +436,7 @@ a {
 .links {
   display: flex;
   gap: 0.4rem;
+  flex: none;
 }
 
 .links a {
@@ -594,9 +667,14 @@ a {
 }
 
 /* ── responsive ────────────────────────────────────────────────────────────── */
+/* Container-independent: the dock fills whatever it is given and never exceeds it,
+   so the layout does not depend on a breakpoint firing. */
+.dock {
+  width: 100%;
+}
+
 @media (max-width: 640px) {
   .dock {
-    width: 100%;
     max-width: none;
     gap: 0.6rem;
   }
@@ -604,6 +682,36 @@ a {
   .transport button:not(.play) {
     width: 32px;
     height: 32px;
+  }
+
+  /* The strapline is the first thing to go when space is tight. */
+  .mark span {
+    font-size: 0.62rem;
+  }
+
+  .live-label {
+    display: none;
+  }
+}
+
+@media (max-width: 400px) {
+  .mark span {
+    display: none;
+  }
+
+  .transport button:not(.play) {
+    width: 28px;
+    height: 28px;
+  }
+
+  .transport .play {
+    width: 42px;
+    height: 42px;
+  }
+
+  .links a {
+    width: 30px;
+    height: 30px;
   }
 }
 
