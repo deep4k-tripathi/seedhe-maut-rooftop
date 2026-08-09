@@ -62,40 +62,34 @@ from 9 August and look at which address it was sent to.
 
 ## 3. The live counter → Cloudflare
 
+**Already deployed.** Live at:
+
+```
+https://sm-nation-presence.deepak-tripathi.workers.dev
+```
+
+`ALLOWED_ORIGINS` is set in `worker/wrangler.toml` and applies on deploy. To ship a
+change:
+
 ```bash
-cd worker
-npx wrangler login      # opens a browser
-npx wrangler deploy
+cd worker && npx wrangler deploy
 ```
 
-That prints a URL like `https://sm-nation-presence.<your-subdomain>.workers.dev`.
+If you ever deploy from a fresh Cloudflare account, note that Workers has to be opened
+in the dashboard once before the first deploy will succeed — it fails with
+`You need a workers.dev subdomain` until you load **Compute** in the dashboard sidebar.
+(Workers is under "Compute" now, not the old "Workers & Pages" entry.)
 
-Durable Objects are on the Workers **free** plan, but the account has to have opted into
-Workers at least once — the first `wrangler deploy` walks you through it.
+### The site points at it via
 
-### Point the site at it
-
-In Vercel: **Settings → Environment Variables**, add
+Vercel → **Settings → Environment Variables**:
 
 ```
-VITE_PRESENCE_URL = wss://sm-nation-presence.<your-subdomain>.workers.dev
+VITE_PRESENCE_URL = wss://sm-nation-presence.deepak-tripathi.workers.dev
 ```
 
-`wss://`, not `https://`. Redeploy for it to take effect — Vite inlines env vars at build
-time, so changing it does not affect an existing build.
-
-### Lock the Worker to your domain
-
-Once the site has a real hostname, uncomment the `[vars]` block in
-`worker/wrangler.toml`:
-
-```toml
-[vars]
-ALLOWED_ORIGINS = "https://deepaktrip.wtf,https://www.deepaktrip.wtf"
-```
-
-and `npx wrangler deploy` again. Until then any origin can connect, which is fine for
-testing but means someone else's page could inflate your count.
+`wss://`, not `https://`. **Changing this requires a Vercel redeploy** — Vite inlines env
+vars at build time, so an existing build keeps the old value.
 
 ---
 
@@ -108,3 +102,12 @@ testing but means someone else's page could inflate your count.
 If the counter never appears, the WebSocket is not connecting. That is deliberate: the
 badge hides rather than showing a made-up number. Check the browser console and confirm
 `VITE_PRESENCE_URL` was set **before** the build that is currently live.
+
+Quick health check without a browser:
+
+```bash
+curl -s https://sm-nation-presence.deepak-tripathi.workers.dev
+```
+
+Returns `{"count":N}`. To confirm the origin lock still works, an upgrade request from an
+unlisted origin should come back `403 Forbidden origin`.
