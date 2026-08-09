@@ -10,24 +10,31 @@
 import type { Levels } from '../player/engine';
 import { mount as mountComposition, render, TOTAL } from './composition';
 
-/** A calm wide frame, used when the viewer has asked for reduced motion. */
-const STILL_FRAME = 3.2;
-
 let started = 0;
-let reduced = false;
+
+/**
+ * Whether to hold the camera still.
+ *
+ * `prefers-reduced-motion` used to freeze the entire composition on one frame, which
+ * is a misreading of the setting: what provokes motion sensitivity is the large camera
+ * push-in and pan, not a window flickering or smoke drifting. Freezing everything just
+ * served a still image to anyone with the OS setting on — which on macOS is a lot of
+ * people. Now the camera holds on the establishing wide and the city stays alive.
+ */
+let calmCamera = false;
 
 export function mount(root: HTMLElement): void {
   mountComposition(root);
   started = performance.now();
 
   const query = window.matchMedia('(prefers-reduced-motion: reduce)');
-  reduced = query.matches;
+  calmCamera = query.matches;
   query.addEventListener('change', (event) => {
-    reduced = event.matches;
+    calmCamera = event.matches;
   });
 
   // Paint one frame immediately so the curtain never sits over an empty stage.
-  render(reduced ? STILL_FRAME : 0, { bass: 0, mid: 0, treble: 0 });
+  render(0, { bass: 0, mid: 0, treble: 0 }, calmCamera);
 }
 
 /**
@@ -37,11 +44,15 @@ export function mount(root: HTMLElement): void {
  * the city's light sources, so the piece reads exactly as made even in silence.
  */
 export function pulse(_root: HTMLElement, levels: Levels): void {
-  const T = reduced ? STILL_FRAME : ((performance.now() - started) / 1000) % TOTAL;
+  const T = ((performance.now() - started) / 1000) % TOTAL;
   const clamp01 = (v: number) => (v < 0 ? 0 : v > 1 ? 1 : v);
-  render(T, {
-    bass: clamp01(levels.bass),
-    mid: clamp01(levels.mid),
-    treble: clamp01(levels.treble),
-  });
+  render(
+    T,
+    {
+      bass: clamp01(levels.bass),
+      mid: clamp01(levels.mid),
+      treble: clamp01(levels.treble),
+    },
+    calmCamera,
+  );
 }

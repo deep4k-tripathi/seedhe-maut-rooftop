@@ -21,10 +21,15 @@ Apple Music and YouTube Music for real listening.
 
 ## The scene
 
-"Dilli, 11:40 pm" — a south Delhi rooftop, ported from the Claude Design composition
-*Rooftop Scene Delhi Night*. A 20 second loop: the camera pushes in on a hooded figure
-on the parapet, he takes a drag and exhales, a flight crosses behind the Qutub Minar, and
-the frame pulls back as दिल्ली settles over the city.
+"Dilli, 11:40 pm" v2 — a south Delhi rooftop in a comic-print treatment, ported from the
+Claude Design composition *Rooftop Scene Delhi Night*. A 20 second loop: the camera
+pushes in on a hooded figure on the parapet, the ember flares and lights his profile
+inside the hood, a flight crosses behind the floodlit Qutub Minar, and the frame pulls
+back as दिल्ली settles over the city on three off-register plates.
+
+The print treatment is cel-shaded volumes with ink outlines, halftone screens masked to
+the horizon band, and chromatic misregistration — the far skyline and the figure are
+re-inked in magenta and cyan a few pixels off, the way a cheap press misses.
 
 It is a faithful port from React plus a composition runtime to vanilla TS — those would
 have cost roughly 45 KB gzipped for what is, here, a background. The model is unchanged:
@@ -34,16 +39,23 @@ markup and each frame writes only the attributes that move.
 Two things in `src/scene/composition.ts` are load-bearing and easy to break:
 
 - The scenery comes from **one shared PRNG consumed in a fixed order** (far blocks, mid
-  blocks, far windows, mid windows, stars, mid antennae, near band). Reordering those
-  calls — or adding one — regenerates a different skyline.
+  blocks, far buildings, mid buildings, stars, near band). v2 generates each building's
+  windows and roof details inline, so the draw order is part of the generator —
+  reordering those calls, or adding one, regenerates a different city.
 - The crop **tracks the figure**, not the stage centre. The camera frames him left of
   centre, so a plain `object-fit: cover` sliced him off portrait viewports entirely.
+- The title card and the grade live in **viewport space, outside the stage**. In the
+  original the stage was the screen; here it is cropped and subject-anchored, so
+  anything screen-space left inside it drifts off-frame.
 
 Audio never overrides the authored choreography. It only lifts the city's light sources —
 windows, the hoarding, the pool of light, the haze — so the piece reads exactly as made
 even in silence.
 
-The scene holds on a single still frame when the viewer has `prefers-reduced-motion`.
+Under `prefers-reduced-motion` the camera holds on the establishing wide while the city
+stays alive. Freezing the whole piece — the first approach — just served a still image to
+everyone with the OS setting on, which on macOS is a lot of people. What provokes motion
+sensitivity is the push-in, not a flickering window.
 
 ## Curating the set
 

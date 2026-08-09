@@ -43,16 +43,16 @@ a {
 
 /* ── scene ─────────────────────────────────────────────────────────────────── */
 /*
-   "Dilli, 11:40 pm" — ported from the Claude Design composition.
-   The stage is a fixed 1920x1080 world scaled to cover the viewport; the camera
-   transform lives on .sc-world and is written from JS each frame.
+   "Dilli, 11:40 pm" v2 — comic-print treatment, ported from the Claude Design
+   composition. The stage is a fixed 1920x1080 world scaled to cover the viewport;
+   the camera transform lives on .sc-world and is written from JS each frame.
 */
 #scene {
   position: fixed;
   inset: 0;
   z-index: 0;
   overflow: hidden;
-  background: #04050b;
+  background: #05061a;
 }
 
 .sc-stage {
@@ -63,7 +63,7 @@ a {
   height: 1080px;
   transform-origin: 0 0;
   overflow: hidden;
-  background: #04050b;
+  background: #05061a;
 }
 
 .sc-world {
@@ -78,10 +78,60 @@ a {
 
 .sc-sky {
   position: absolute;
-  left: -60px;
+  left: -80px;
   top: -320px;
-  width: 2040px;
+  width: 2080px;
   height: 1080px;
+}
+
+/* Halftone screens. Masked to the horizon band so the dots read as ink on the smog
+   rather than a flat overlay across the whole frame. */
+.sc-ht {
+  position: absolute;
+  left: -80px;
+  top: -320px;
+  width: 2080px;
+  height: 1080px;
+  pointer-events: none;
+  mix-blend-mode: screen;
+}
+
+.sc-ht-a {
+  opacity: 0.5;
+  background-image: radial-gradient(circle, rgba(255, 130, 60, 0.42) 1.05px, rgba(0, 0, 0, 0) 1.45px);
+  background-size: 8px 8px;
+  -webkit-mask-image: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0) 74%,
+    rgba(0, 0, 0, 0.7) 86%,
+    rgba(0, 0, 0, 1) 93%,
+    rgba(0, 0, 0, 0) 99%
+  );
+  mask-image: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0) 74%,
+    rgba(0, 0, 0, 0.7) 86%,
+    rgba(0, 0, 0, 1) 93%,
+    rgba(0, 0, 0, 0) 99%
+  );
+}
+
+.sc-ht-b {
+  opacity: 0.2;
+  background-image: radial-gradient(circle, rgba(150, 90, 255, 0.3) 1.15px, rgba(0, 0, 0, 0) 1.55px);
+  background-size: 12px 12px;
+  -webkit-mask-image: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0) 48%,
+    rgba(0, 0, 0, 0.75) 68%,
+    rgba(0, 0, 0, 0) 80%
+  );
+  mask-image: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0) 48%,
+    rgba(0, 0, 0, 0.75) 68%,
+    rgba(0, 0, 0, 0) 80%
+  );
 }
 
 .sc-moonglow {
@@ -93,9 +143,9 @@ a {
   border-radius: 50%;
   background: radial-gradient(
     circle,
-    rgba(255, 236, 206, 0.2) 0%,
-    rgba(255, 226, 186, 0.07) 34%,
-    rgba(255, 220, 180, 0) 68%
+    rgba(190, 222, 255, 0.24) 0%,
+    rgba(160, 200, 255, 0.08) 34%,
+    rgba(160, 200, 255, 0) 68%
   );
 }
 
@@ -107,7 +157,6 @@ a {
   height: 1080px;
 }
 
-/* smog band over the city — the haze that makes Delhi look like Delhi */
 .sc-smog {
   position: absolute;
   left: 0;
@@ -119,10 +168,10 @@ a {
 
 .sc-qglow {
   position: absolute;
-  left: 1130px;
-  top: 300px;
-  width: 350px;
-  height: 400px;
+  left: 1120px;
+  top: 268px;
+  width: 370px;
+  height: 430px;
   pointer-events: none;
 }
 
@@ -142,28 +191,57 @@ a {
   opacity: 0;
 }
 
-/* end card — screen space, so it does not ride the camera */
+/* end card — viewport space, not stage space, so the crop never clips it */
 .sc-endcard {
   position: absolute;
-  left: 0;
-  top: 300px;
-  width: 1780px;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
   text-align: center;
   pointer-events: none;
   opacity: 0;
+  padding: 0 5vw;
 }
 
-.sc-end-title {
-  font: 400 176px 'Rozha One', Georgia, serif;
-  color: #f6e7d0;
+.sc-end-wrap {
+  position: relative;
+  /* Scales with the viewport so the card fits a phone as well as a desktop. */
+  --end-size: clamp(3.2rem, 15vw, 11.2rem);
+}
+
+/* Three plates: magenta and cyan drift off-register, then converge as the card
+   settles — the press coming into register. */
+.sc-end-ghost {
+  position: absolute;
+  inset: 0;
+  font: 400 var(--end-size) 'Rozha One', Georgia, serif;
+  line-height: 1;
+  mix-blend-mode: screen;
+}
+
+.sc-end-mag {
+  color: #ff2e88;
+  opacity: 0.75;
+}
+
+.sc-end-cool {
+  color: #3fd8ea;
+  opacity: 0.7;
+}
+
+.sc-end-main {
+  position: relative;
+  font: 400 var(--end-size) 'Rozha One', Georgia, serif;
+  color: #fbf1e2;
   line-height: 1;
   text-shadow:
-    0 0 70px rgba(255, 182, 104, 0.42),
-    0 0 160px rgba(255, 150, 70, 0.2);
+    0 0 70px rgba(255, 182, 104, 0.4),
+    0 0 170px rgba(255, 120, 70, 0.22);
 }
 
 .sc-end-line {
-  margin-top: 34px;
+  margin-top: clamp(14px, 2.4vw, 34px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -171,16 +249,16 @@ a {
 }
 
 .sc-end-line i {
-  width: 60px;
+  width: clamp(24px, 4vw, 60px);
   height: 1px;
-  background: rgba(246, 231, 208, 0.32);
+  background: rgba(251, 241, 226, 0.34);
 }
 
 .sc-end-line span {
-  font: 300 27px Barlow, ui-sans-serif, sans-serif;
+  font: 300 clamp(0.62rem, 2.1vw, 1.7rem) Barlow, ui-sans-serif, sans-serif;
   letter-spacing: 0.44em;
   text-transform: uppercase;
-  color: rgba(246, 231, 208, 0.66);
+  color: rgba(251, 241, 226, 0.7);
   padding-left: 0.44em;
 }
 
@@ -195,10 +273,10 @@ a {
 
 .sc-vignette {
   background: radial-gradient(
-    ellipse 78% 72% at 46% 44%,
-    rgba(0, 0, 0, 0) 34%,
-    rgba(0, 0, 0, 0.3) 72%,
-    rgba(0, 0, 0, 0.68) 100%
+    ellipse 76% 70% at 46% 44%,
+    rgba(0, 0, 0, 0) 28%,
+    rgba(3, 2, 12, 0.42) 68%,
+    rgba(3, 2, 12, 0.86) 100%
   );
 }
 
@@ -206,13 +284,13 @@ a {
   mix-blend-mode: screen;
   background: radial-gradient(
     ellipse 60% 40% at 68% 62%,
-    rgba(255, 150, 70, 0.055) 0%,
+    rgba(255, 150, 70, 0.06) 0%,
     rgba(255, 150, 70, 0) 70%
   );
 }
 
 .sc-grain {
-  opacity: 0.13;
+  opacity: 0.15;
   mix-blend-mode: overlay;
   background-size: 180px 180px;
 }
