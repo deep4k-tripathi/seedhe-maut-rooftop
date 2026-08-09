@@ -39,8 +39,9 @@ markup and each frame writes only the attributes that move.
 Two things in `src/scene/composition.ts` are load-bearing and easy to break:
 
 - The scenery comes from **one shared PRNG consumed in a fixed order** (far blocks, mid
-  blocks, far windows, mid windows, stars, mid antennae, near band). Reordering those
-  calls — or adding one — regenerates a different skyline.
+  blocks, far buildings, mid buildings, stars, near band). v2 generates each building's
+  windows and roof details inline, so the draw order is part of the generator —
+  reordering those calls, or adding one, regenerates a different city.
 - The crop **tracks the figure**, not the stage centre. The camera frames him left of
   centre, so a plain `object-fit: cover` sliced him off portrait viewports entirely.
 - The title card and the grade live in **viewport space, outside the stage**. In the
@@ -51,7 +52,10 @@ Audio never overrides the authored choreography. It only lifts the city's light 
 windows, the hoarding, the pool of light, the haze — so the piece reads exactly as made
 even in silence.
 
-The scene holds on a single still frame when the viewer has `prefers-reduced-motion`.
+Under `prefers-reduced-motion` the camera holds on the establishing wide while the city
+stays alive. Freezing the whole piece — the first approach — just served a still image to
+everyone with the OS setting on, which on macOS is a lot of people. What provokes motion
+sensitivity is the push-in, not a flickering window.
 
 ## Curating the set
 
